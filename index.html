@@ -104,7 +104,32 @@
 
     /* Números f en gris claro */
     #question, .option .value { color: #d6d6d6; }
-  </style>
+  
+/* Final screen redesign */
+.score-box{
+  display:inline-flex; align-items:center; justify-content:center;
+  background:#ffffff; border-radius:16px; padding:14px 22px; 
+  font-size:32px; font-weight:800; letter-spacing:.5px; 
+  margin:10px 0 18px; box-shadow: inset 0 2px 0 rgba(0,0,0,.08);
+
+  color:#000;
+}
+.score-box .pts{ margin-left:8px; font-weight:700; opacity:.85; }
+.final-row{
+  display:flex; justify-content:space-between; align-items:flex-end;
+  width:min(92vw, 620px); margin:18px auto 0; padding:0 6px;
+}
+.final-row img{ height:140px; image-rendering: pixelated; }
+@media (max-width: 520px){
+  .final-row img{ height:110px; }
+}
+
+
+.icon-btn{ background:transparent; border:none; padding:0; cursor:pointer; }
+.icon-btn:focus{ outline: 2px solid var(--border); outline-offset: 2px; border-radius: 10px; }
+.score-box{ background:#ffffff; } /* fondo blanco, texto negro */
+
+</style>
 </head>
 <body>
   <div class="container">
@@ -141,12 +166,7 @@
           <label for="mode-hard"><span class="title">Hard</span><span class="desc">2 segundos</span></label>
         </div>
 
-        <div class="cta-row"><button class="btn" id="btn-start">Comenzar</button></div>
-
-        
-          <div class="step"><span class="ico">🅰️🅱️</span> Elige la opción correcta</div>
-          <div class="step"><span class="ico">⭐</span> Puntos por rapidez (&lt;1s = +10, 1–2s = +5, ≥2s = +3)</div>
-        </div>
+        <div class="cta-row"><button class="btn" id="btn-start">Comenzar</button></div></div>
       </div>
     </div>
 
@@ -179,16 +199,29 @@
       <p class="subtitle center" style="margin-top:16px;">Puntaje por rapidez: &lt;1s = +10 · 1–2s = +5 · 2–4s = +3</p>
     </div>
 
-    <div class="card hidden" id="screen-final">
-      <div class="center" style="padding:38px 8px;">
-        <div class="title">¡Juego terminado!</div>
-        <p class="subtitle" style="margin:8px 0 18px;">Puntaje total: <strong id="final-score">0</strong></p>
-        <div id="missed" class="subtitle" style="margin:0 0 20px;"></div>
-        <div style="display:flex; gap:10px; justify-content:center;">
-          <button class="btn" id="btn-replay">Jugar otra vez</button>
-          <button class="btn secondary" id="btn-home">Volver al inicio</button>
-        </div>
-      </div>
+    
+
+<div class="card hidden" id="screen-final">
+  <div class="center" style="padding:38px 8px;">
+    <div class="logo-wrap" style="margin-bottom:10px;">
+      <img src="fstop-hero-logo.png" alt="Fstop Hero" />
+    </div>
+    <div class="title">¡Juego terminado!</div>
+    <div class="score-box"><span id="final-score">0</span> <span class="pts">pts</span></div>
+    <div id="missed" class="subtitle" style="margin:0 0 20px;"></div>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button class="btn" id="btn-replay">Jugar otra vez</button>
+      <button class="btn secondary" id="btn-home">Volver al inicio</button>
+    </div>
+    <div class="final-row">
+      <img src="Ansel_Adams.png" alt="Ansel Adams" />
+      <button id="btn-share" class="icon-btn" aria-label="Compartir resultado"><img src="share.png" alt="Compartir" /></button>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin:8px 0 18px;"></p>
+        <div id="missed" class="subtitle" style="margin:0 0 20px;"></div></div>
     </div>
 
     <div class="card hidden" id="screen-review">
@@ -206,7 +239,7 @@
     </div>
 
     <footer class="subtitle" style="margin-top: 10px;">
-      Elige el siguiente número f: solo una opción pertenece a la serie estándar en tercios de paso (1/3 EV).
+      
     </footer>
   </div>
 
@@ -493,6 +526,174 @@ window.addEventListener('keydown', (e)=>{
 
 // Inicio
 reset();
+
+
+// ---- Compartir resultado (Instagram-ready) ----
+(function(){
+  const btnShare = document.getElementById('btn-share');
+  if (!btnShare) return;
+
+  function loadImage(src){
+    return new Promise((resolve,reject)=>{
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = ()=> resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  async function composeImage(){
+    const W = 1080, H = 1920; // Tamaño feed vertical de Instagram
+    const pad = 48;
+    const cnv = document.createElement('canvas');
+    cnv.width = W; cnv.height = H;
+    const ctx = cnv.getContext('2d');
+
+    // Fondo
+    const g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0, '#0d0d0f');
+    g.addColorStop(1, '#1a1a1a');
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,W,H);
+
+    // Panel central
+    const panelH = 1380;
+    const panelY = (H - panelH)/2 - 30;
+    ctx.fillStyle = '#121212';
+    ctx.strokeStyle = '#2a2a2a';
+    ctx.lineWidth = 8;
+    const r = 42;
+    // rounded rect
+    ctx.beginPath();
+    ctx.moveTo(pad+r, panelY);
+    ctx.lineTo(W-pad-r, panelY);
+    ctx.quadraticCurveTo(W-pad, panelY, W-pad, panelY+r);
+    ctx.lineTo(W-pad, panelY+panelH-r);
+    ctx.quadraticCurveTo(W-pad, panelY+panelH, W-pad-r, panelY+panelH);
+    ctx.lineTo(pad+r, panelY+panelH);
+    ctx.quadraticCurveTo(pad, panelY+panelH, pad, panelY+panelH-r);
+    ctx.lineTo(pad, panelY+r);
+    ctx.quadraticCurveTo(pad, panelY, pad+r, panelY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Logo
+    try {
+      const logo = await loadImage('fstop-hero-logo.png');
+      const logoMaxW = W - pad*2 - 80;
+      const scale = Math.min(1, logoMaxW / logo.width);
+      const lw = logo.width*scale, lh = logo.height*scale;
+      ctx.drawImage(logo, (W-lw)/2, panelY + 40, lw, lh);
+    } catch(e){ /* continúa sin logo */ }
+
+    // Título
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 92px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('¡Juego terminado!', W/2, panelY + 420);
+
+    // Puntaje en chip blanco
+    const scoreEl = document.getElementById('final-score');
+    const score = scoreEl ? scoreEl.textContent.trim() : '0';
+    const chipText = score + ' pts';
+    ctx.font = 'bold 120px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+    const tw = ctx.measureText(chipText).width;
+    const chipW = tw + 120, chipH = 180, chipY = panelY + 520;
+    // chip
+    ctx.fillStyle = '#ffffff';
+    // chip rounded
+    const cx = (W - chipW)/2;
+    const cy = chipY;
+    const rr = 36;
+    ctx.beginPath();
+    ctx.moveTo(cx+rr, cy);
+    ctx.lineTo(cx+chipW-rr, cy);
+    ctx.quadraticCurveTo(cx+chipW, cy, cx+chipW, cy+rr);
+    ctx.lineTo(cx+chipW, cy+chipH-rr);
+    ctx.quadraticCurveTo(cx+chipW, cy+chipH, cx+chipW-rr, cy+chipH);
+    ctx.lineTo(cx+rr, cy+chipH);
+    ctx.quadraticCurveTo(cx, cy+chipH, cx, cy+chipH-rr);
+    ctx.lineTo(cx, cy+rr);
+    ctx.quadraticCurveTo(cx, cy, cx+rr, cy);
+    ctx.closePath();
+    ctx.fill();
+    // texto negro
+    ctx.fillStyle = '#000000';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(chipText, W/2, cy + chipH/2 + 4);
+
+    // Fallaste...
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = '600 44px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+    const missedText = (typeof missed !== 'undefined' && missed.length)
+      ? 'Fallaste: ' + missed.map(n=>formatF(n)).join(' · ')
+      : '¡Perfecto! No fallaste ningún valor ✨';
+    ctx.fillStyle = '#dddddd';
+    wrapFillText(ctx, missedText, W/2, cy + chipH + 180, W - pad*2 - 80, 54);
+
+    // Marca inferior
+    ctx.font = '500 32px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+    ctx.fillStyle = '#999';
+    ctx.fillText('Fstop Hero — Números f (1/3 EV)', W/2, H - 40);
+
+    return new Promise((resolve)=> cnv.toBlob(b=> resolve({blob:b, canvas:cnv}), 'image/png'));
+  }
+
+  function wrapFillText(ctx, text, xCenter, yStart, maxWidth, lineHeight){
+    const words = text.split(/\s+/);
+    let line = '';
+    const lines = [];
+    for (let w of words){
+      const test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width > maxWidth){
+        if (line) lines.push(line);
+        line = w;
+      } else {
+        line = test;
+      }
+    }
+    if (line) lines.push(line);
+    let y = yStart;
+    for (const ln of lines){
+      ctx.fillText(ln, xCenter, y);
+      y += lineHeight;
+    }
+  }
+
+  async function shareResult(){
+    try {
+      const {blob} = await composeImage();
+      const file = new File([blob], 'fstop-hero-resultado.png', { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })){
+        await navigator.share({
+          files: [file],
+          title: 'Mi resultado en Fstop Hero',
+          text: 'Practiqué números f — ¡pruébalo tú también!'
+        });
+      } else {
+        // Fallback: descarga directa
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'fstop-hero-resultado.png';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 500);
+        alert('Imagen guardada. Súbela a Instagram como publicación o historia 📷');
+      }
+    } catch(err){
+      console.error('Error al generar imagen de resultado', err);
+      alert('No se pudo generar la imagen. Intenta de nuevo.');
+    }
+  }
+
+  btnShare.addEventListener('click', shareResult);
+})();
+
 </script>
 </body>
 </html>
